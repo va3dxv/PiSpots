@@ -1,5 +1,4 @@
 #!/usr/bin/python
-#import
 import RPi.GPIO as GPIO
 import time
 import datetime
@@ -8,7 +7,6 @@ import pytz
 import requests
 import xmltodict
 
-# Define GPIO to LCD mapping
 LCD_RS = 26
 LCD_E  = 19
 LCD_D4 = 13
@@ -16,7 +14,6 @@ LCD_D5 = 6
 LCD_D6 = 5
 LCD_D7 = 11
 
-# Define some device constants
 LCD_WIDTH = 16    # Maximum characters per line
 LCD_CHR = True
 LCD_CMD = False
@@ -24,7 +21,6 @@ LCD_CMD = False
 LCD_LINE_1 = 0x80 # LCD RAM address for the 1st line
 LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 
-# Timing constants
 E_PULSE = 0.0005
 E_DELAY = 0.0005
 
@@ -33,7 +29,6 @@ xml_data = requests.get(
 spots_data = xmltodict.parse(xml_data.text)
 
 def main():
-  # Main program block
   GPIO.setwarnings(False)
   GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
   GPIO.setup(LCD_E, GPIO.OUT)  # E
@@ -43,7 +38,6 @@ def main():
   GPIO.setup(LCD_D6, GPIO.OUT) # DB6
   GPIO.setup(LCD_D7, GPIO.OUT) # DB7
 
-  # Initialise display
   lcd_init()
 
   while True:
@@ -63,14 +57,11 @@ def main():
       time.sleep(3) # 3 second delay
 
 
-    # Send some text
-    #lcd_string("Follow me on",LCD_LINE_1)
-    #lcd_string("Twitter @RPiSpy",LCD_LINE_2)
-
+    #lcd_string("test 1",LCD_LINE_1)
+    #lcd_string("test 2",LCD_LINE_2)
     #time.sleep(3)
 
 def lcd_init():
-  # Initialise display
   lcd_byte(0x33,LCD_CMD) # 110011 Initialise
   lcd_byte(0x32,LCD_CMD) # 110010 Initialise
   lcd_byte(0x06,LCD_CMD) # 000110 Cursor move direction
@@ -87,7 +78,6 @@ def lcd_byte(bits, mode):
 
   GPIO.output(LCD_RS, mode) # RS
 
-  # High bits
   GPIO.output(LCD_D4, False)
   GPIO.output(LCD_D5, False)
   GPIO.output(LCD_D6, False)
@@ -101,10 +91,8 @@ def lcd_byte(bits, mode):
   if bits&0x80==0x80:
     GPIO.output(LCD_D7, True)
 
-  # Toggle 'Enable' pin
   lcd_toggle_enable()
 
-  # Low bits
   GPIO.output(LCD_D4, False)
   GPIO.output(LCD_D5, False)
   GPIO.output(LCD_D6, False)
@@ -118,11 +106,9 @@ def lcd_byte(bits, mode):
   if bits&0x08==0x08:
     GPIO.output(LCD_D7, True)
 
-  # Toggle 'Enable' pin
   lcd_toggle_enable()
 
 def lcd_toggle_enable():
-  # Toggle enable
   time.sleep(E_DELAY)
   GPIO.output(LCD_E, True)
   time.sleep(E_PULSE)
@@ -130,7 +116,6 @@ def lcd_toggle_enable():
   time.sleep(E_DELAY)
 
 def lcd_string(message,line):
-  # Send string to display
 
   message = message.ljust(LCD_WIDTH," ")
 
@@ -148,5 +133,6 @@ if __name__ == '__main__':
   finally:
     lcd_byte(0x01, LCD_CMD)
     lcd_string("Goodbye!",LCD_LINE_1)
+    time.sleep(3)
     lcd_byte(0x01,LCD_CMD)
     GPIO.cleanup()
