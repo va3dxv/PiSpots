@@ -76,7 +76,7 @@ def main():
         while True:
 
             xml_ten = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=vhf&dxcc=001&limit=5")
+                url="http://dxlite.g7vjr.org/?xml=1&band=10&dxcc=001&limit=5")
             spots_ten = xmltodict.parse(xml_ten.text)
 
             lcd_string("Showing last 5", LCD_LINE_1)
