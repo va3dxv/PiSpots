@@ -2,7 +2,7 @@
 import RPi.GPIO as GPIO
 import time
 import datetime
-
+import argparse
 import pytz
 import requests
 import xmltodict
@@ -24,9 +24,15 @@ LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 E_PULSE = 0.0005
 E_DELAY = 0.0005
 
-xml_data = requests.get(
-    url="http://dxlite.g7vjr.org/?xml=1&band=10&dxcc=001&limit=5")
-spots_data = xmltodict.parse(xml_data.text)
+#xml_data = requests.get(
+#    url="http://dxlite.g7vjr.org/?xml=1&band=vhf&dxcc=001&limit=10")
+#spots_data = xmltodict.parse(xml_data.text)
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-vhf", help="Grab VHF and up spots", action = "store_true", default=False)
+parser.add_argument("-ten", help="Grab ten meter spots.", action = "store_true", default=False)
+parser.add_argument("-at", help="Grab 80 meter spots.", action = "store_true", default=False)
 
 def main():
   GPIO.setwarnings(False)
@@ -40,22 +46,64 @@ def main():
 
   lcd_init()
 
-  while True:
+  args = parser.parse_args()
 
-    lcd_string("Showing last 5",LCD_LINE_1)
-    lcd_string("DX Spots for 10M",LCD_LINE_2)
-    time.sleep(3)
+  if args.vhf:
 
-    for spots in spots_data["spots"]["spot"]:
-      date_string = spots["time"]
-      utc = pytz.utc
-      est = pytz.timezone("US/Eastern")
-      utc_datetime = utc.localize(datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
+    while True:
 
-      lcd_string(spots["spotter"] + "->" + spots["dx"],LCD_LINE_1)
-      lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(est).strftime("%d-%m") + "/" + utc_datetime.astimezone(est).strftime("%H:%M"),LCD_LINE_2)
-      time.sleep(3) # 3 second delay
+      xml_vhf = requests.get(url="http://dxlite.g7vjr.org/?xml=1&band=vhf&dxcc=001&limit=5")
+      spots_vhf = xmltodict.parse(xml_vhf.text)
 
+      lcd_string("Showing last 5",LCD_LINE_1)
+      lcd_string("DX Spots: 50Mhz+",LCD_LINE_2)
+      time.sleep(3)
+      for spots in spots_vhf["spots"]["spot"]:
+        date_string = spots["time"]
+        utc = pytz.utc
+        est = pytz.timezone("US/Eastern")
+        utc_datetime = utc.localize(datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
+        lcd_string(spots["spotter"] + "->" + spots["dx"],LCD_LINE_1)
+        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"),LCD_LINE_2)
+        time.sleep(3)
+
+  if args.ten:
+
+    while True:
+
+      xml_ten = requests.get(url="http://dxlite.g7vjr.org/?xml=1&band=vhf&dxcc=001&limit=5")
+      spots_ten = xmltodict.parse(xml_ten.text)
+
+      lcd_string("Showing last 5",LCD_LINE_1)
+      lcd_string("DX Spots: 10Mtrs",LCD_LINE_2)
+      time.sleep(3)
+      for spots in spots_ten["spots"]["spot"]:
+        date_string = spots["time"]
+        utc = pytz.utc
+        est = pytz.timezone("US/Eastern")
+        utc_datetime = utc.localize(datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
+        lcd_string(spots["spotter"] + "->" + spots["dx"],LCD_LINE_1)
+        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"),LCD_LINE_2)
+        time.sleep(3)
+
+  if args.at:
+
+    while True:
+
+      xml_80 = requests.get(url="http://dxlite.g7vjr.org/?xml=1&band=80&dxcc=001&limit=5")
+      spots_80 = xmltodict.parse(xml_80.text)
+
+      lcd_string("Showing last 5",LCD_LINE_1)
+      lcd_string("DX Spots: 80Mtrs",LCD_LINE_2)
+      time.sleep(3)
+      for spots in spots_80["spots"]["spot"]:
+        date_string = spots["time"]
+        utc = pytz.utc
+        est = pytz.timezone("US/Eastern")
+        utc_datetime = utc.localize(datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
+        lcd_string(spots["spotter"] + "->" + spots["dx"],LCD_LINE_1)
+        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"),LCD_LINE_2)
+        time.sleep(3)
 
     #lcd_string("test 1",LCD_LINE_1)
     #lcd_string("test 2",LCD_LINE_2)
