@@ -14,12 +14,12 @@ LCD_D5 = 6
 LCD_D6 = 5
 LCD_D7 = 11
 
-LCD_WIDTH = 16    # Maximum characters per line
+LCD_WIDTH = 16
 LCD_CHR = True
 LCD_CMD = False
 
-LCD_LINE_1 = 0x80  # LCD RAM address for the 1st line
-LCD_LINE_2 = 0xC0  # LCD RAM address for the 2nd line
+LCD_LINE_1 = 0x80
+LCD_LINE_2 = 0xC0  # LCD RAM address for lines
 
 E_PULSE = 0.0005
 E_DELAY = 0.0005
@@ -31,7 +31,7 @@ parser.add_argument("-ten", help="Grab ten meter spots.",
                     action="store_true", default=False)
 parser.add_argument("-at", help="Grab 80 meter spots.",
                     action="store_true", default=False)
-parser.add_argument("-twnt", help="Grab 80 meter spots.",
+parser.add_argument("-twnt", help="Grab 20 meter spots.",
                     action="store_true", default=False)
 
 
@@ -71,7 +71,7 @@ def main():
                     est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
                 time.sleep(3)
 
-    if args.ten:
+    elif args.ten:
 
         while True:
 
@@ -93,7 +93,7 @@ def main():
                     est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
                 time.sleep(3)
 
-    if args.at:
+    elif args.at:
 
         while True:
 
@@ -115,7 +115,7 @@ def main():
                     est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
                 time.sleep(3)
 
-    if args.twnt:
+    elif args.twnt:
 
         while True:
 
@@ -137,11 +137,6 @@ def main():
                     est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
                 time.sleep(3)
 
-        #lcd_string("test 1",LCD_LINE_1)
-        #lcd_string("test 2",LCD_LINE_2)
-        # time.sleep(3)
-
-
 def lcd_init():
     lcd_byte(0x33, LCD_CMD)  # 110011 Initialise
     lcd_byte(0x32, LCD_CMD)  # 110010 Initialise
@@ -151,10 +146,7 @@ def lcd_init():
     lcd_byte(0x01, LCD_CMD)  # 000001 Clear display
     time.sleep(E_DELAY)
 
-
 def lcd_byte(bits, mode):
-    # Send byte to data pins
-    # bits = data
     # mode = True  for character
     #        False for command
 
@@ -190,14 +182,12 @@ def lcd_byte(bits, mode):
 
     lcd_toggle_enable()
 
-
 def lcd_toggle_enable():
     time.sleep(E_DELAY)
     GPIO.output(LCD_E, True)
     time.sleep(E_PULSE)
     GPIO.output(LCD_E, False)
     time.sleep(E_DELAY)
-
 
 def lcd_string(message, line):
 
@@ -207,7 +197,6 @@ def lcd_string(message, line):
 
     for i in range(LCD_WIDTH):
         lcd_byte(ord(message[i]), LCD_CHR)
-
 
 if __name__ == '__main__':
 
