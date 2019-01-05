@@ -2,6 +2,11 @@
 #import
 import RPi.GPIO as GPIO
 import time
+import datetime
+
+import pytz
+import requests
+import xmltodict
 
 # Define GPIO to LCD mapping
 LCD_RS = 26
@@ -23,6 +28,10 @@ LCD_LINE_2 = 0xC0 # LCD RAM address for the 2nd line
 E_PULSE = 0.0005
 E_DELAY = 0.0005
 
+xml_data = requests.get(
+    url="http://dxlite.g7vjr.org/?xml=1&band=10&dxcc=001&limit=5")
+spots_data = xmltodict.parse(xml_data.text)
+
 def main():
   # Main program block
   GPIO.setwarnings(False)
@@ -39,29 +48,26 @@ def main():
 
   while True:
 
-    # Send some test
-    lcd_string("Rasbperry Pi",LCD_LINE_1)
-    lcd_string("16x2 LCD Test",LCD_LINE_2)
-
-    time.sleep(3) # 3 second delay
-
-    # Send some text
-    lcd_string("1234567890123456",LCD_LINE_1)
-    lcd_string("abcdefghijklmnop",LCD_LINE_2)
-
-    time.sleep(3) # 3 second delay
-
-    # Send some text
-    lcd_string("RaspberryPi-spy",LCD_LINE_1)
-    lcd_string(".co.uk",LCD_LINE_2)
-
+    lcd_string("Showing last 5",LCD_LINE_1)
+    lcd_string("DX Spots for 10M",LCD_LINE_2)
     time.sleep(3)
 
-    # Send some text
-    lcd_string("Follow me on",LCD_LINE_1)
-    lcd_string("Twitter @RPiSpy",LCD_LINE_2)
+    for spots in spots_data["spots"]["spot"]:
+      date_string = spots["time"]
+      utc = pytz.utc
+      est = pytz.timezone("US/Eastern")
+      utc_datetime = utc.localize(datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
 
-    time.sleep(3)
+      lcd_string(spots["spotter"] + "->" + spots["dx"],LCD_LINE_1)
+      lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(est).strftime("%d-%m") + "/" + utc_datetime.astimezone(est).strftime("%H:%M"),LCD_LINE_2)
+      time.sleep(3) # 3 second delay
+
+
+    # Send some text
+    #lcd_string("Follow me on",LCD_LINE_1)
+    #lcd_string("Twitter @RPiSpy",LCD_LINE_2)
+
+    #time.sleep(3)
 
 def lcd_init():
   # Initialise display
