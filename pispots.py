@@ -51,7 +51,9 @@ def main():
     args = parser.parse_args()
 
     if not any([args.fort, args.vhf, args.ten, args.at, args.twnt]):
-        print("This application displays DX spots for a specified band on your 16x2 Raspberry Pi LCD. Arguments are required but no argument given. Try 'pispots.py -h'")
+    print(
+        "This application displays DX spots for a specified band on your 16x2 "
+        "Raspberry Pi LCD. Arguments are required but no argument given. Try 'pispots.py -h'")
 
     elif args.vhf:
 
