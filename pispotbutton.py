@@ -23,8 +23,12 @@ LCD_LINE_2 = 0xC0  # LCD RAM address for lines
 E_PULSE = 0.0005
 E_DELAY = 0.0005
 
+def waitmsg():
+    lcd_string("PiSpots.py...", LCD_LINE_1)
+    lcd_string("...waiting", LCD_LINE_2)
+
 def vhf(channel):
-    lcd_init()
+    print("vhf and up")
     lcd_string("Showing last 5", LCD_LINE_1)
     lcd_string("spots for 6Mtrs+", LCD_LINE_2)
     xml_vhf = requests.get(
@@ -41,11 +45,10 @@ def vhf(channel):
         lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
             est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
         time.sleep(3)
-    lcd_string("PiSpots.py...", LCD_LINE_1)
-    lcd_string("...waiting", LCD_LINE_2)
+    waitmsg()
 
 def ten(channel):
-    lcd_init()
+    print("10 meters")
     lcd_string("Showing last 5", LCD_LINE_1)
     lcd_string("spots for 10Mtrs", LCD_LINE_2)
     xml_ten = requests.get(
@@ -62,8 +65,7 @@ def ten(channel):
         lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
             est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
         time.sleep(3)
-    lcd_string("PiSpots.py...", LCD_LINE_1)
-    lcd_string("...waiting", LCD_LINE_2)
+    waitmsg()
 
 def main():
     GPIO.setwarnings(False)
@@ -76,12 +78,11 @@ def main():
     GPIO.setup(LCD_D7, GPIO.OUT)  # DB7
     GPIO.setup(9, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(9, GPIO.FALLING, callback=ten, bouncetime=300)
-    GPIO.add_event_detect(10, GPIO.FALLING, callback=vhf, bouncetime=300)
+    GPIO.add_event_detect(9, GPIO.FALLING, callback=ten, bouncetime=100)
+    GPIO.add_event_detect(10, GPIO.FALLING, callback=vhf, bouncetime=100)
 
     lcd_init()
-    lcd_string("PiSpots.py...", LCD_LINE_1)
-    lcd_string("...waiting", LCD_LINE_2)
+    waitmsg()
     input()
 
 def lcd_init():
