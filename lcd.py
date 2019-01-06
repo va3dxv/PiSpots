@@ -27,13 +27,12 @@ E_DELAY = 0.0005
 parser = argparse.ArgumentParser()
 parser.add_argument("-vhf", help="Grab VHF and up spots",
                     action="store_true", default=False)
-parser.add_argument("-ten", help="Grab ten meter spots.",
+parser.add_argument("-ten", help="Grab 10 meter spots.",
                     action="store_true", default=False)
 parser.add_argument("-at", help="Grab 80 meter spots.",
                     action="store_true", default=False)
 parser.add_argument("-twnt", help="Grab 20 meter spots.",
                     action="store_true", default=False)
-
 
 def main():
     GPIO.setwarnings(False)
@@ -49,7 +48,10 @@ def main():
 
     args = parser.parse_args()
 
-    if args.vhf:
+    if not any([args.vhf, args.ten, args.at, args.twnt]):
+        print("No argument given. Try 'lcd.py -h'")
+
+    elif args.vhf:
 
         while True:
 
