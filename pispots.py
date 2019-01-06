@@ -27,13 +27,15 @@ E_DELAY = 0.0005
 parser = argparse.ArgumentParser()
 parser.add_argument("-vhf", help="Show 6M/VHF and up spots",
                     action="store_true", default=False)
-parser.add_argument("-ten", help="Show 10/12/15/17 meter spots.",
+parser.add_argument("-ten", help="Show 10 meter spots.",
                     action="store_true", default=False)
 parser.add_argument("-twnt", help="Show 20 meter spots.",
                     action="store_true", default=False)
 parser.add_argument("-fort", help="Show 40 meter spots.",
                     action="store_true", default=False)
 parser.add_argument("-at", help="Show 80 meter spots.",
+                    action="store_true", default=False)
+parser.add_argument("-top", help="Show 160 meter spots.",
                     action="store_true", default=False)
 
 def main():
@@ -82,7 +84,7 @@ def main():
         while True:
 
             xml_ten = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=10,12,15,17&dxcc=001&limit=5")
+                url="http://dxlite.g7vjr.org/?xml=1&band=10dxcc=001&limit=5")
             spots_ten = xmltodict.parse(xml_ten.text)
 
             lcd_string("Showing last 5", LCD_LINE_1)
@@ -155,6 +157,28 @@ def main():
             lcd_string("DX Spots: 40Mtrs", LCD_LINE_2)
             time.sleep(3)
             for spots in spots_40["spots"]["spot"]:
+                date_string = spots["time"]
+                utc = pytz.utc
+                est = pytz.timezone("US/Eastern")
+                utc_datetime = utc.localize(
+                    datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
+                lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
+                lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
+                    est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
+                time.sleep(3)
+                
+    elif args.top:
+
+        while True:
+
+            xml_160 = requests.get(
+                url="http://dxlite.g7vjr.org/?xml=1&band=160&dxcc=001&limit=5")
+            spots_160 = xmltodict.parse(xml_160.text)
+
+            lcd_string("Showing last 5", LCD_LINE_1)
+            lcd_string("DX Spots:160Mtrs", LCD_LINE_2)
+            time.sleep(3)
+            for spots in spots_160["spots"]["spot"]:
                 date_string = spots["time"]
                 utc = pytz.utc
                 est = pytz.timezone("US/Eastern")
