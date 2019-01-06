@@ -25,13 +25,11 @@ E_DELAY = 0.0005
 
 def vhf(channel):
     lcd_init()
-    lcd_string("VHF Spots", LCD_LINE_1)
-    print("VHF, button 10")
+    lcd_string("Showing last 5", LCD_LINE_1)
+    lcd_string("spots for 6Mtrs+", LCD_LINE_2)
     xml_vhf = requests.get(
         url="http://dxlite.g7vjr.org/?xml=1&band=vhf&dxcc=001&limit=5")
     spots_vhf = xmltodict.parse(xml_vhf.text)
-    lcd_string("Showing last 5", LCD_LINE_1)
-    lcd_string("DX Spots: 50Mhz+", LCD_LINE_2)
     time.sleep(3)
     for spots in spots_vhf["spots"]["spot"]:
         date_string = spots["time"]
@@ -43,18 +41,16 @@ def vhf(channel):
         lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
             est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
         time.sleep(3)
-    lcd_string("Ok.", LCD_LINE_1)
-    lcd_string("waiting...", LCD_LINE_2)
+    lcd_string("PiSpots.py...", LCD_LINE_1)
+    lcd_string("...waiting", LCD_LINE_2)
 
 def ten(channel):
     lcd_init()
-    lcd_string("10 Meter Spots", LCD_LINE_1)
-    print("Ten, button 9")
+    lcd_string("Showing last 5", LCD_LINE_1)
+    lcd_string("spots for 10Mtrs", LCD_LINE_2)
     xml_ten = requests.get(
         url="http://dxlite.g7vjr.org/?xml=1&band=10&dxcc=001&limit=5")
     spots_ten = xmltodict.parse(xml_ten.text)
-    lcd_string("Showing last 5", LCD_LINE_1)
-    lcd_string("DX Spots: 10Mtrs", LCD_LINE_2)
     time.sleep(3)
     for spots in spots_ten["spots"]["spot"]:
         date_string = spots["time"]
@@ -66,8 +62,8 @@ def ten(channel):
         lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
             est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
         time.sleep(3)
-    lcd_string("Ok.", LCD_LINE_1)
-    lcd_string("waiting...", LCD_LINE_2)
+    lcd_string("PiSpots.py...", LCD_LINE_1)
+    lcd_string("...waiting", LCD_LINE_2)
 
 def main():
     GPIO.setwarnings(False)
@@ -85,6 +81,7 @@ def main():
 
     lcd_init()
     lcd_string("PiSpots.py...", LCD_LINE_1)
+    lcd_string("...waiting", LCD_LINE_2)
     input()
 
 def lcd_init():
@@ -156,7 +153,8 @@ if __name__ == '__main__':
         pass
     finally:
         lcd_byte(0x01, LCD_CMD)
-        lcd_string("73!!!", LCD_LINE_1)
+        lcd_string("PiSpots.py...", LCD_LINE_1)
+        lcd_string("...73!!!", LCD_LINE_2)
         time.sleep(3)
         lcd_byte(0x01, LCD_CMD)
         GPIO.cleanup()
