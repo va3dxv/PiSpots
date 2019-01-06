@@ -2,7 +2,6 @@
 import RPi.GPIO as GPIO
 import time
 import datetime
-import argparse
 import pytz
 import requests
 import xmltodict
@@ -24,20 +23,6 @@ LCD_LINE_2 = 0xC0  # LCD RAM address for lines
 E_PULSE = 0.0005
 E_DELAY = 0.0005
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-vhf", help="Show 6M/VHF and up spots",
-                    action="store_true", default=False)
-parser.add_argument("-ten", help="Show 10 meter spots.",
-                    action="store_true", default=False)
-parser.add_argument("-twnt", help="Show 20 meter spots.",
-                    action="store_true", default=False)
-parser.add_argument("-fort", help="Show 40 meter spots.",
-                    action="store_true", default=False)
-parser.add_argument("-at", help="Show 80 meter spots.",
-                    action="store_true", default=False)
-parser.add_argument("-top", help="Show 160 meter spots.",
-                    action="store_true", default=False)
-
 def main():
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
@@ -47,17 +32,15 @@ def main():
     GPIO.setup(LCD_D5, GPIO.OUT)  # DB5
     GPIO.setup(LCD_D6, GPIO.OUT)  # DB6
     GPIO.setup(LCD_D7, GPIO.OUT)  # DB7
+    GPIO.setup(9, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     lcd_init()
 
-    args = parser.parse_args()
+    input_vhf = GPIO.input(9)
+    input_ten = GPIO.input(10)
 
-    if not any([args.top, args.fort, args.vhf, args.ten, args.at, args.twnt]):
-        print(
-            "This application displays DX spots for a specified band on your 16x2 "
-            "Raspberry Pi LCD. Arguments are required but no argument given.")
-
-    elif args.vhf:
+    if input_vhf == False:
 
         while True:
 
@@ -78,17 +61,18 @@ def main():
                 lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
                     est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
                 time.sleep(3)
+            return main()
 
-    elif args.ten:
+    elif input_ten == False:
 
         while True:
 
             xml_ten = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=10dxcc=001&limit=5")
+                url="http://dxlite.g7vjr.org/?xml=1&band=10&dxcc=001&limit=5")
             spots_ten = xmltodict.parse(xml_ten.text)
 
             lcd_string("Showing last 5", LCD_LINE_1)
-            lcd_string("DX Spots: 17-10M", LCD_LINE_2)
+            lcd_string("DX Spots: 10M", LCD_LINE_2)
             time.sleep(3)
             for spots in spots_ten["spots"]["spot"]:
                 date_string = spots["time"]
@@ -100,94 +84,10 @@ def main():
                 lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
                     est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
                 time.sleep(3)
+            return main()
 
-    elif args.at:
-
-        while True:
-
-            xml_80 = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=80&dxcc=001&limit=5")
-            spots_80 = xmltodict.parse(xml_80.text)
-
-            lcd_string("Showing last 5", LCD_LINE_1)
-            lcd_string("DX Spots: 80Mtrs", LCD_LINE_2)
-            time.sleep(3)
-            for spots in spots_80["spots"]["spot"]:
-                date_string = spots["time"]
-                utc = pytz.utc
-                est = pytz.timezone("US/Eastern")
-                utc_datetime = utc.localize(
-                    datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-                lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-                lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-                    est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
-                time.sleep(3)
-
-    elif args.twnt:
-
-        while True:
-
-            xml_20 = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=20&dxcc=001&limit=5")
-            spots_20 = xmltodict.parse(xml_20.text)
-
-            lcd_string("Showing last 5", LCD_LINE_1)
-            lcd_string("DX Spots: 20Mtrs", LCD_LINE_2)
-            time.sleep(3)
-            for spots in spots_20["spots"]["spot"]:
-                date_string = spots["time"]
-                utc = pytz.utc
-                est = pytz.timezone("US/Eastern")
-                utc_datetime = utc.localize(
-                    datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-                lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-                lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-                    est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
-                time.sleep(3)
-
-    elif args.fort:
-
-        while True:
-
-            xml_40 = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=40&dxcc=001&limit=5")
-            spots_40 = xmltodict.parse(xml_40.text)
-
-            lcd_string("Showing last 5", LCD_LINE_1)
-            lcd_string("DX Spots: 40Mtrs", LCD_LINE_2)
-            time.sleep(3)
-            for spots in spots_40["spots"]["spot"]:
-                date_string = spots["time"]
-                utc = pytz.utc
-                est = pytz.timezone("US/Eastern")
-                utc_datetime = utc.localize(
-                    datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-                lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-                lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-                    est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
-                time.sleep(3)
-
-    elif args.top:
-
-        while True:
-
-            xml_160 = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=160&dxcc=001&limit=5")
-            spots_160 = xmltodict.parse(xml_160.text)
-
-            lcd_string("Showing last 5", LCD_LINE_1)
-            lcd_string("DX Spots:160Mtrs", LCD_LINE_2)
-            time.sleep(3)
-            for spots in spots_160["spots"]["spot"]:
-                date_string = spots["time"]
-                utc = pytz.utc
-                est = pytz.timezone("US/Eastern")
-                utc_datetime = utc.localize(
-                    datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-                lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-                lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-                    est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
-                time.sleep(3)
+    else:
+        return main()
 
 def lcd_init():
     lcd_byte(0x33, LCD_CMD)  # 110011 Initialise
