@@ -52,10 +52,10 @@ def main():
 
     args = parser.parse_args()
 
-    if not any([args.fort, args.vhf, args.ten, args.at, args.twnt]):
+    if not any([args.top, args.fort, args.vhf, args.ten, args.at, args.twnt]):
         print(
             "This application displays DX spots for a specified band on your 16x2 "
-            "Raspberry Pi LCD. Arguments are required but no argument given."
+            "Raspberry Pi LCD. Arguments are required but no argument given.")
 
     elif args.vhf:
 
@@ -166,7 +166,7 @@ def main():
                 lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
                     est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
                 time.sleep(3)
-                
+
     elif args.top:
 
         while True:
