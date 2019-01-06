@@ -25,15 +25,15 @@ E_PULSE = 0.0005
 E_DELAY = 0.0005
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-vhf", help="Grab 6M/VHF and up spots",
+parser.add_argument("-vhf", help="Show 6M/VHF and up spots",
                     action="store_true", default=False)
-parser.add_argument("-ten", help="Grab 10/12/15/17 meter spots.",
+parser.add_argument("-ten", help="Show 10/12/15/17 meter spots.",
                     action="store_true", default=False)
-parser.add_argument("-twnt", help="Grab 20 meter spots.",
+parser.add_argument("-twnt", help="Show 20 meter spots.",
                     action="store_true", default=False)
-parser.add_argument("-fort", help="Grab 40 meter spots.",
+parser.add_argument("-fort", help="Show 40 meter spots.",
                     action="store_true", default=False)
-parser.add_argument("-at", help="Grab 80 meter spots.",
+parser.add_argument("-at", help="Show 80 meter spots.",
                     action="store_true", default=False)
 
 def main():
@@ -51,7 +51,7 @@ def main():
     args = parser.parse_args()
 
     if not any([args.fort, args.vhf, args.ten, args.at, args.twnt]):
-        print("No argument given. Try 'lcd.py -h'")
+        print("No argument given. Try 'pispots.py -h'")
 
     elif args.vhf:
 
