@@ -25,7 +25,7 @@ E_PULSE = 0.0005
 E_DELAY = 0.0005
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-vhf", help="Grab VHF and up spots",
+parser.add_argument("-vhf", help="Grab 6M/VHF and up spots",
                     action="store_true", default=False)
 parser.add_argument("-ten", help="Grab 10/12/15/17 meter spots.",
                     action="store_true", default=False)
