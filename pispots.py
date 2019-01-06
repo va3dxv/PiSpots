@@ -84,11 +84,11 @@ def main():
         while True:
 
             xml_ten = requests.get(
-                url="http://dxlite.g7vjr.org/?xml=1&band=10dxcc=001&limit=5")
+                url="http://dxlite.g7vjr.org/?xml=1&band=10&dxcc=001&limit=5")
             spots_ten = xmltodict.parse(xml_ten.text)
 
             lcd_string("Showing last 5", LCD_LINE_1)
-            lcd_string("DX Spots: 17-10M", LCD_LINE_2)
+            lcd_string("DX Spots: 10M", LCD_LINE_2)
             time.sleep(3)
             for spots in spots_ten["spots"]["spot"]:
                 date_string = spots["time"]
