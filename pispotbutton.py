@@ -23,6 +23,11 @@ LCD_LINE_2 = 0xC0  # LCD RAM address for lines
 E_PULSE = 0.0005
 E_DELAY = 0.0005
 
+vhfpin = 21
+tenpin = 20
+twntpin = 16
+fortpin = 12
+
 def waitmsg():
     lcd_string("PiSpots.py...", LCD_LINE_1)
     lcd_string("...waiting", LCD_LINE_2)
@@ -45,7 +50,6 @@ def vhf(channel):
             est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
         time.sleep(3)
     waitmsg()
-
 
 def fort(channel):
     lcd_string("Showing last 5", LCD_LINE_1)
@@ -113,18 +117,17 @@ def main():
     GPIO.setup(LCD_D5, GPIO.OUT)  # DB5
     GPIO.setup(LCD_D6, GPIO.OUT)  # DB6
     GPIO.setup(LCD_D7, GPIO.OUT)  # DB7
-    GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(vhfpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(tenpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(twntpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(fortpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    GPIO.add_event_detect(21, GPIO.FALLING, callback=vhf, bouncetime=300)
-    GPIO.add_event_detect(20, GPIO.FALLING, callback=ten, bouncetime=300)
-    GPIO.add_event_detect(16, GPIO.FALLING, callback=twnt, bouncetime=300)
-    GPIO.add_event_detect(12, GPIO.FALLING, callback=fort, bouncetime=300)
+    GPIO.add_event_detect(vhfpin, GPIO.FALLING, callback=vhf, bouncetime=300)
+    GPIO.add_event_detect(tenpin, GPIO.FALLING, callback=ten, bouncetime=300)
+    GPIO.add_event_detect(twntpin, GPIO.FALLING, callback=twnt, bouncetime=300)
+    GPIO.add_event_detect(fortpin, GPIO.FALLING, callback=fort, bouncetime=300)
     lcd_init()
     waitmsg()
-    input()
 
 def lcd_init():
     lcd_byte(0x33, LCD_CMD)  # 110011 Initialise
@@ -187,16 +190,19 @@ def lcd_string(message, line):
     for i in range(LCD_WIDTH):
         lcd_byte(ord(message[i]), LCD_CHR)
 
-if __name__ == '__main__':
+try:
+    main()
+    while(True):
+        time.sleep(1)
+        if not GPIO.input(vhfpin):
+            lcd_init()
 
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        lcd_byte(0x01, LCD_CMD)
-        lcd_string("PiSpots.py...", LCD_LINE_1)
-        lcd_string("...73!!!", LCD_LINE_2)
-        time.sleep(3)
-        lcd_byte(0x01, LCD_CMD)
-        GPIO.cleanup()
+except KeyboardInterrupt:
+    pass
+finally:
+    lcd_byte(0x01, LCD_CMD)
+    lcd_string("PiSpots.py...", LCD_LINE_1)
+    lcd_string("...73!!!", LCD_LINE_2)
+    time.sleep(3)
+    lcd_byte(0x01, LCD_CMD)
+    GPIO.cleanup()
