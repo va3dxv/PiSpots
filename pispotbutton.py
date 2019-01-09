@@ -28,7 +28,6 @@ def waitmsg():
     lcd_string("...waiting", LCD_LINE_2)
 
 def vhf(channel):
-    print("vhf and up")
     lcd_string("Showing last 5", LCD_LINE_1)
     lcd_string("spots for 6Mtrs+", LCD_LINE_2)
     xml_vhf = requests.get(
@@ -47,8 +46,27 @@ def vhf(channel):
         time.sleep(3)
     waitmsg()
 
+
+def fort(channel):
+    lcd_string("Showing last 5", LCD_LINE_1)
+    lcd_string("spots for 40Mtrs", LCD_LINE_2)
+    xml_fort = requests.get(
+        url="http://dxlite.g7vjr.org/?xml=1&band=40&dxcc=001&limit=5")
+    spots_fort = xmltodict.parse(xml_fort.text)
+    time.sleep(3)
+    for spots in spots_fort["spots"]["spot"]:
+        date_string = spots["time"]
+        utc = pytz.utc
+        est = pytz.timezone("US/Eastern")
+        utc_datetime = utc.localize(
+            datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
+        lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
+        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
+            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
+        time.sleep(3)
+    waitmsg()
+
 def ten(channel):
-    print("10 meters")
     lcd_string("Showing last 5", LCD_LINE_1)
     lcd_string("spots for 10Mtrs", LCD_LINE_2)
     xml_ten = requests.get(
@@ -56,6 +74,25 @@ def ten(channel):
     spots_ten = xmltodict.parse(xml_ten.text)
     time.sleep(3)
     for spots in spots_ten["spots"]["spot"]:
+        date_string = spots["time"]
+        utc = pytz.utc
+        est = pytz.timezone("US/Eastern")
+        utc_datetime = utc.localize(
+            datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
+        lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
+        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
+            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
+        time.sleep(3)
+    waitmsg()
+
+def twnt(channel):
+    lcd_string("Showing last 5", LCD_LINE_1)
+    lcd_string("spots for 20Mtrs", LCD_LINE_2)
+    xml_twnt = requests.get(
+        url="http://dxlite.g7vjr.org/?xml=1&band=20&dxcc=001&limit=5")
+    spots_twnt = xmltodict.parse(xml_twnt.text)
+    time.sleep(3)
+    for spots in spots_twnt["spots"]["spot"]:
         date_string = spots["time"]
         utc = pytz.utc
         est = pytz.timezone("US/Eastern")
@@ -76,11 +113,15 @@ def main():
     GPIO.setup(LCD_D5, GPIO.OUT)  # DB5
     GPIO.setup(LCD_D6, GPIO.OUT)  # DB6
     GPIO.setup(LCD_D7, GPIO.OUT)  # DB7
-    GPIO.setup(9, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.add_event_detect(9, GPIO.FALLING, callback=ten, bouncetime=100)
-    GPIO.add_event_detect(10, GPIO.FALLING, callback=vhf, bouncetime=100)
+    GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(20, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(12, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
+    GPIO.add_event_detect(21, GPIO.FALLING, callback=vhf, bouncetime=300)
+    GPIO.add_event_detect(20, GPIO.FALLING, callback=ten, bouncetime=300)
+    GPIO.add_event_detect(16, GPIO.FALLING, callback=twnt, bouncetime=300)
+    GPIO.add_event_detect(12, GPIO.FALLING, callback=fort, bouncetime=300)
     lcd_init()
     waitmsg()
     input()
