@@ -1,40 +1,55 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import RPi.GPIO as GPIO
 import time
 import datetime
 import pytz
 import requests
 import xmltodict
+from rpi_displays.sainsmart.displays import LCD2004
 
-LCD_RS = 26
-LCD_E = 19
-LCD_D4 = 13
-LCD_D5 = 6
-LCD_D6 = 5
-LCD_D7 = 11
-
-LCD_WIDTH = 16
-LCD_CHR = True
-LCD_CMD = False
-
-LCD_LINE_1 = 0x80
-LCD_LINE_2 = 0xC0  # LCD RAM address for lines
-
-E_PULSE = 0.0005
-E_DELAY = 0.0005
+lcd=LCD2004()
 
 vhfpin = 21
 tenpin = 20
-twntpin = 16
-fortpin = 12
+twntpin = 26
+fortpin = 19
+
+def __init__():
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
+    GPIO.setup(vhfpin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(tenpin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(twntpin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(fortpin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+    GPIO.add_event_detect(vhfpin, GPIO.FALLING, callback=vhf, bouncetime=300)
+    GPIO.add_event_detect(tenpin, GPIO.FALLING, callback=ten, bouncetime=300)
+    GPIO.add_event_detect(twntpin, GPIO.FALLING, callback=twnt, bouncetime=300)
+    GPIO.add_event_detect(fortpin, GPIO.FALLING, callback=fort, bouncetime=300)
+
+    waitmsg()
+
+def destroy():
+    lcd.clear()
+    lcd.display_string("PiSpots.py...", 1)
+    lcd.display_string("Goodbye.", 2)
+    print ("\nCleaning up...\n")
+    GPIO.cleanup()
+    time.sleep(.5)
+    print ("\nGoodbye.\n")
+    lcd.clear()
+    lcd.switch_backlight(0)
+    exit()
 
 def waitmsg():
-    lcd_string("PiSpots.py...", LCD_LINE_1)
-    lcd_string("...waiting", LCD_LINE_2)
+    lcd.clear()
+    lcd.display_string("PiSpots.py...", 1)
+    lcd.display_string("...waiting", 2)
 
 def vhf(channel):
-    lcd_string("Showing last 5", LCD_LINE_1)
-    lcd_string("spots for 6Mtrs+", LCD_LINE_2)
+    lcd.clear()
+    lcd.display_string("Showing last 5", 1)
+    lcd.display_string("spots for 6Mtrs+", 2)
     xml_vhf = requests.get(
         url="http://dxlite.g7vjr.org/?xml=1&band=vhf&dxcc=001&limit=5")
     spots_vhf = xmltodict.parse(xml_vhf.text)
@@ -45,15 +60,17 @@ def vhf(channel):
         est = pytz.timezone("US/Eastern")
         utc_datetime = utc.localize(
             datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-        lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
+        lcd.clear()
+        lcd.display_string(spots["spotter"] + "->" + spots["dx"], 1)
+        lcd.display_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
+            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), 2)
         time.sleep(3)
     waitmsg()
 
 def fort(channel):
-    lcd_string("Showing last 5", LCD_LINE_1)
-    lcd_string("spots for 40Mtrs", LCD_LINE_2)
+    lcd.clear()
+    lcd.display_string("Showing last 5", 1)
+    lcd.display_string("spots for 40Mtrs", 2)
     xml_fort = requests.get(
         url="http://dxlite.g7vjr.org/?xml=1&band=40&dxcc=001&limit=5")
     spots_fort = xmltodict.parse(xml_fort.text)
@@ -64,15 +81,17 @@ def fort(channel):
         est = pytz.timezone("US/Eastern")
         utc_datetime = utc.localize(
             datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-        lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
+        lcd.clear()
+        lcd.display_string(spots["spotter"] + "->" + spots["dx"], 1)
+        lcd.display_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
+            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), 2)
         time.sleep(3)
     waitmsg()
 
 def ten(channel):
-    lcd_string("Showing last 5", LCD_LINE_1)
-    lcd_string("spots for 10Mtrs", LCD_LINE_2)
+    lcd.clear()
+    lcd.display_string("Showing last 5", 1)
+    lcd.display_string("spots for 10Mtrs", 2)
     xml_ten = requests.get(
         url="http://dxlite.g7vjr.org/?xml=1&band=10&dxcc=001&limit=5")
     spots_ten = xmltodict.parse(xml_ten.text)
@@ -83,15 +102,17 @@ def ten(channel):
         est = pytz.timezone("US/Eastern")
         utc_datetime = utc.localize(
             datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-        lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
+        lcd.clear()
+        lcd.display_string(spots["spotter"] + "->" + spots["dx"], 1)
+        lcd.display_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
+            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), 2)
         time.sleep(3)
     waitmsg()
 
 def twnt(channel):
-    lcd_string("Showing last 5", LCD_LINE_1)
-    lcd_string("spots for 20Mtrs", LCD_LINE_2)
+    lcd.clear()
+    lcd.display_string("Showing last 5", 1)
+    lcd.display_string("spots for 20Mtrs", 2)
     xml_twnt = requests.get(
         url="http://dxlite.g7vjr.org/?xml=1&band=20&dxcc=001&limit=5")
     spots_twnt = xmltodict.parse(xml_twnt.text)
@@ -102,107 +123,22 @@ def twnt(channel):
         est = pytz.timezone("US/Eastern")
         utc_datetime = utc.localize(
             datetime.datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S"))
-        lcd_string(spots["spotter"] + "->" + spots["dx"], LCD_LINE_1)
-        lcd_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
-            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), LCD_LINE_2)
+        lcd.clear()
+        lcd.display_string(spots["spotter"] + "->" + spots["dx"], 1)
+        lcd.display_string(spots["frequency"].split(".")[0] + " " + utc_datetime.astimezone(
+            est).strftime("%d%b") + utc_datetime.astimezone(est).strftime("%H:%M"), 2)
         time.sleep(3)
     waitmsg()
 
-def main():
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
-    GPIO.setup(LCD_E, GPIO.OUT)  # E
-    GPIO.setup(LCD_RS, GPIO.OUT)  # RS
-    GPIO.setup(LCD_D4, GPIO.OUT)  # DB4
-    GPIO.setup(LCD_D5, GPIO.OUT)  # DB5
-    GPIO.setup(LCD_D6, GPIO.OUT)  # DB6
-    GPIO.setup(LCD_D7, GPIO.OUT)  # DB7
-    GPIO.setup(vhfpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(tenpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(twntpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(fortpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+if __name__ == '__main__':
+    __init__()
+    while True:
+        try:
+            time.sleep(1)
+        except ValueError as e:
+            print(e)
+        except TypeError as e:
+            print(e)
+        except KeyboardInterrupt:
+            destroy()
 
-    GPIO.add_event_detect(vhfpin, GPIO.FALLING, callback=vhf, bouncetime=300)
-    GPIO.add_event_detect(tenpin, GPIO.FALLING, callback=ten, bouncetime=300)
-    GPIO.add_event_detect(twntpin, GPIO.FALLING, callback=twnt, bouncetime=300)
-    GPIO.add_event_detect(fortpin, GPIO.FALLING, callback=fort, bouncetime=300)
-    lcd_init()
-    waitmsg()
-
-def lcd_init():
-    lcd_byte(0x33, LCD_CMD)  # 110011 Initialise
-    lcd_byte(0x32, LCD_CMD)  # 110010 Initialise
-    lcd_byte(0x06, LCD_CMD)  # 000110 Cursor move direction
-    lcd_byte(0x0C, LCD_CMD)  # 001100 Display On,Cursor Off, Blink Off
-    lcd_byte(0x28, LCD_CMD)  # 101000 Data length, number of lines, font size
-    lcd_byte(0x01, LCD_CMD)  # 000001 Clear display
-    time.sleep(E_DELAY)
-
-def lcd_byte(bits, mode):
-    # mode = True  for character
-    #        False for command
-
-    GPIO.output(LCD_RS, mode)  # RS
-
-    GPIO.output(LCD_D4, False)
-    GPIO.output(LCD_D5, False)
-    GPIO.output(LCD_D6, False)
-    GPIO.output(LCD_D7, False)
-    if bits & 0x10 == 0x10:
-        GPIO.output(LCD_D4, True)
-    if bits & 0x20 == 0x20:
-        GPIO.output(LCD_D5, True)
-    if bits & 0x40 == 0x40:
-        GPIO.output(LCD_D6, True)
-    if bits & 0x80 == 0x80:
-        GPIO.output(LCD_D7, True)
-
-    lcd_toggle_enable()
-
-    GPIO.output(LCD_D4, False)
-    GPIO.output(LCD_D5, False)
-    GPIO.output(LCD_D6, False)
-    GPIO.output(LCD_D7, False)
-    if bits & 0x01 == 0x01:
-        GPIO.output(LCD_D4, True)
-    if bits & 0x02 == 0x02:
-        GPIO.output(LCD_D5, True)
-    if bits & 0x04 == 0x04:
-        GPIO.output(LCD_D6, True)
-    if bits & 0x08 == 0x08:
-        GPIO.output(LCD_D7, True)
-
-    lcd_toggle_enable()
-
-def lcd_toggle_enable():
-    time.sleep(E_DELAY)
-    GPIO.output(LCD_E, True)
-    time.sleep(E_PULSE)
-    GPIO.output(LCD_E, False)
-    time.sleep(E_DELAY)
-
-def lcd_string(message, line):
-
-    message = message.ljust(LCD_WIDTH, " ")
-
-    lcd_byte(line, LCD_CMD)
-
-    for i in range(LCD_WIDTH):
-        lcd_byte(ord(message[i]), LCD_CHR)
-
-try:
-    main()
-    while(True):
-        time.sleep(1)
-        if not GPIO.input(vhfpin):
-            lcd_init()
-
-except KeyboardInterrupt:
-    pass
-finally:
-    lcd_byte(0x01, LCD_CMD)
-    lcd_string("PiSpots.py...", LCD_LINE_1)
-    lcd_string("...73!!!", LCD_LINE_2)
-    time.sleep(3)
-    lcd_byte(0x01, LCD_CMD)
-    GPIO.cleanup()
